@@ -11,26 +11,41 @@ const Login = ({ setUserType }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError(''); // Limpiar error antes de intentar el envío
+
         try {
             const response = await api.post('/usuario', { username, password });
             console.log('Respuesta del servidor:', response.data);
-    
-            // Guardar token en localStorage
-            localStorage.setItem('token', response.data.token);
-            localStorage.setItem('userType', response.data.userType);  // Guardar tipo de usuario
-    
-            setUserType(response.data.userType); // Guardar el tipo de usuario en el estado
-    
-            // Redirigir según el tipo de usuario
-            if (response.data.userType === 'admin') {
-                navigate('/admin');
+
+            // Verificación básica de la respuesta
+            if (response.data.token && response.data.userType) {
+                // Guardar token y tipo de usuario en localStorage
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('userType', response.data.userType); 
+
+                setUserType(response.data.userType); // Guardar el tipo de usuario en el estado
+
+                // Redirigir según el tipo de usuario
+                if (response.data.userType === 'admin') {
+                    navigate('/admin');
+                } else {
+                    navigate('/user');
+                }
             } else {
-                navigate('/user');
+                setError('Datos inválidos recibidos del servidor');
             }
         } catch (err) {
             console.error('Error al autenticar:', err);
             setError('Credenciales incorrectas');
         }
+    };
+
+    // Limpiar el error cuando el usuario empieza a escribir
+    const handleChange = (e) => {
+        if (error) setError(''); // Limpiar el error cuando el usuario empieza a escribir
+        const { name, value } = e.target;
+        if (name === 'username') setUsername(value);
+        else if (name === 'password') setPassword(value);
     };
 
     return (
@@ -48,7 +63,8 @@ const Login = ({ setUserType }) => {
                                 type="text"
                                 placeholder="Ingresa tu usuario"
                                 value={username}
-                                onChange={(e) => setUsername(e.target.value)}
+                                onChange={handleChange}
+                                name="username"
                                 required
                             />
                         </Form.Group>
@@ -59,7 +75,8 @@ const Login = ({ setUserType }) => {
                                 type="password"
                                 placeholder="Ingresa tu contraseña"
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                onChange={handleChange}
+                                name="password"
                                 required
                             />
                         </Form.Group>
