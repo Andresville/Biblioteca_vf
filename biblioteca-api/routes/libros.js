@@ -14,12 +14,24 @@ router.get('/', (req, res) => {
         libros.id_idioma,
         libros.cantidad,
         copias_libros.id AS copia_id,
-        estado.estado AS estado
+        estado.estado AS estado,
+        copias_libros.prestado,
+        (SELECT COUNT(*) 
+         FROM copias_libros 
+         INNER JOIN estado 
+         ON copias_libros.id_estado = estado.id
+         WHERE copias_libros.id_libro = libros.id 
+           AND estado.estado = 'presentable' 
+           AND copias_libros.prestado = 0
+        ) AS total_disponibles
     FROM 
         libros
-    LEFT JOIN copias_libros ON copias_libros.id_libro = libros.id
-    LEFT JOIN estado ON copias_libros.id_estado = estado.id
-    ORDER BY libros.titulo, copias_libros.id;
+    LEFT JOIN 
+        copias_libros ON copias_libros.id_libro = libros.id
+    LEFT JOIN 
+        estado ON copias_libros.id_estado = estado.id
+    ORDER BY 
+        libros.titulo;
     `;
 
     connection.query(query, (err, results) => {
@@ -29,16 +41,17 @@ router.get('/', (req, res) => {
         }
 
         // Agrupar los resultados por libro
-        const librosConEstados = results.reduce((acc, row) => {
+        const librosConCopias = results.reduce((acc, row) => {
             const libro = acc.find(libro => libro.id === row.id);
             if (libro) {
-                // Si el libro ya existe, agregar la copia con su estado
+                // Si el libro ya existe, agregar la copia
                 libro.copias.push({
                     copia_id: row.copia_id,
-                    estado: row.estado
+                    estado: row.estado,
+                    prestado: row.prestado
                 });
             } else {
-                // Si el libro no existe, crear un nuevo libro
+                // Si el libro no existe, agregarlo al acumulador
                 acc.push({
                     id: row.id,
                     titulo: row.titulo,
@@ -47,16 +60,18 @@ router.get('/', (req, res) => {
                     id_editorial: row.id_editorial,
                     id_idioma: row.id_idioma,
                     cantidad: row.cantidad,
+                    total_disponibles: row.total_disponibles, // Agregar el total de disponibles
                     copias: [{
                         copia_id: row.copia_id,
-                        estado: row.estado
+                        estado: row.estado,
+                        prestado: row.prestado
                     }]
                 });
             }
             return acc;
         }, []);
 
-        res.json(librosConEstados); // Devolver los resultados como JSON
+        res.json(librosConCopias); // Devolver los resultados agrupados
     });
 });
 
@@ -74,13 +89,26 @@ router.get('/:id', (req, res) => {
         libros.id_idioma,
         libros.cantidad,
         copias_libros.id AS copia_id,
-        estado.estado AS estado
+        estado.estado AS estado,
+        copias_libros.prestado,
+        (SELECT COUNT(*) 
+         FROM copias_libros 
+         INNER JOIN estado 
+         ON copias_libros.id_estado = estado.id
+         WHERE copias_libros.id_libro = libros.id 
+           AND estado.estado = 'presentable' 
+           AND copias_libros.prestado = 0
+        ) AS total_disponibles
     FROM 
         libros
-    LEFT JOIN copias_libros ON copias_libros.id_libro = libros.id
-    LEFT JOIN estado ON copias_libros.id_estado = estado.id
-    WHERE libros.id = ?
-    ORDER BY copias_libros.id;
+    LEFT JOIN 
+        copias_libros ON copias_libros.id_libro = libros.id
+    LEFT JOIN 
+        estado ON copias_libros.id_estado = estado.id
+    WHERE 
+        libros.id = ?
+    ORDER BY 
+        libros.titulo;
     `;
 
     connection.query(query, [id], (err, results) => {
@@ -102,13 +130,15 @@ router.get('/:id', (req, res) => {
             id_editorial: results[0].id_editorial,
             id_idioma: results[0].id_idioma,
             cantidad: results[0].cantidad,
+            total_disponibles: results[0].total_disponibles, // Agregar el total de disponibles
             copias: results.map(row => ({
                 copia_id: row.copia_id,
-                estado: row.estado
+                estado: row.estado,
+                prestado: row.prestado
             }))
         };
 
-        res.json(libro); // Devolver el libro con sus copias y estados
+        res.json(libro); // Devolver el libro con sus copias y el total disponible
     });
 });
 

@@ -1,31 +1,28 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Necesitamos para la redirección
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { Container, Row, Col, Form, Button, Alert } from 'react-bootstrap'; // Importar componentes de Bootstrap
+import { Container, Row, Col, Form, Button, Alert } from 'react-bootstrap';
 
 const Login = ({ setUserType }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const navigate = useNavigate(); // Hook de React Router para redirigir
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError(''); // Limpiar error antes de intentar el envío
+        setError(''); 
 
         try {
             const response = await api.post('/usuario', { username, password });
             console.log('Respuesta del servidor:', response.data);
 
-            // Verificación básica de la respuesta
             if (response.data.token && response.data.userType) {
-                // Guardar token y tipo de usuario en localStorage
                 localStorage.setItem('token', response.data.token);
                 localStorage.setItem('userType', response.data.userType); 
 
-                setUserType(response.data.userType); // Guardar el tipo de usuario en el estado
+                setUserType(response.data.userType);
 
-                // Redirigir según el tipo de usuario
                 if (response.data.userType === 'admin') {
                     navigate('/admin');
                 } else {
@@ -40,9 +37,8 @@ const Login = ({ setUserType }) => {
         }
     };
 
-    // Limpiar el error cuando el usuario empieza a escribir
     const handleChange = (e) => {
-        if (error) setError(''); // Limpiar el error cuando el usuario empieza a escribir
+        if (error) setError('');
         const { name, value } = e.target;
         if (name === 'username') setUsername(value);
         else if (name === 'password') setPassword(value);
@@ -85,6 +81,15 @@ const Login = ({ setUserType }) => {
                             Iniciar Sesión
                         </Button>
                     </Form>
+                    <div className="text-center mt-4">
+                        <Button
+                            variant="link"
+                            onClick={() => navigate('/nuevo-usuario')}
+                            className="text-decoration-none"
+                        >
+                            Crear nuevo usuario
+                        </Button>
+                    </div>
                 </Col>
             </Row>
         </Container>

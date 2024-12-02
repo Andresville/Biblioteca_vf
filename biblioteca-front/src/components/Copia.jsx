@@ -11,7 +11,7 @@ const Copia = ({ copia, titulo, autor, editorial, idioma }) => {
   // Inicializar el estado con el valor numérico correspondiente
   const [estado, setEstado] = useState(estadoMap[copia.estado] || 3);
   const [modificado, setModificado] = useState(false);
-
+  
   // Manejar cambios en el select de estado
   const handleEstadoChange = (e) => {
     setEstado(Number(e.target.value));
@@ -56,6 +56,7 @@ const Copia = ({ copia, titulo, autor, editorial, idioma }) => {
     }
   };
 
+
   return (
     <tr>
       <td>{titulo}</td>
@@ -75,6 +76,7 @@ const Copia = ({ copia, titulo, autor, editorial, idioma }) => {
       <td>{editorial}</td>
       <td>{idioma}</td>
       <td>{copia.copia_id}</td>
+      <td>{copia.prestado ? 'Sí' : 'No'}</td>
       <td>
         {modificado && (
           <button onClick={handleGuardar} className="btn btn-primary btn-sm">

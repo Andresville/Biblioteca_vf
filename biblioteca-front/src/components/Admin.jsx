@@ -13,8 +13,9 @@ const Admin = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [librosRes, estadosRes, editorialesRes, idiomasRes] = await Promise.all([
+        const [librosRes, copiasRes, estadosRes, editorialesRes, idiomasRes] = await Promise.all([
           axios.get('http://localhost:5000/api/libros'),
+          axios.get('http://localhost:5000/api/copias_libros'),
           axios.get('http://localhost:5000/api/estados'),
           axios.get('http://localhost:5000/api/editorial'),
           axios.get('http://localhost:5000/api/idioma')
@@ -33,6 +34,7 @@ const Admin = () => {
     fetchData();
   }, []);
 
+
   return (
     <div>
       <h1>Gestión de Libros</h1>
@@ -46,7 +48,8 @@ const Admin = () => {
             <th>Estado</th>
             <th>Editorial</th>
             <th>Idioma</th>
-            <th>Copia ID</th>
+            <th>N° Copia</th>
+            <th>Prestado</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -56,16 +59,24 @@ const Admin = () => {
               <td colSpan="7">No se encontraron libros.</td>
             </tr>
           ) : (
-            libros.map((libro) => (
-              <Libro
-                key={libro.id}
-                libro={libro}
-                estados={estados}
-                editoriales={editoriales}
-                idiomas={idiomas}
-                setLibros={setLibros}
-              />
-            ))
+            libros.map((libro) => {
+              return (
+                <React.Fragment key={libro.id}>
+                  <Libro
+                    libro={libro}
+                    estados={estados}
+                    editoriales={editoriales}
+                    idiomas={idiomas}
+                    setLibros={setLibros}
+                  />
+                  <tr>
+                    <td colSpan="7">
+                      Total de libros disponibles para ser prestados: {libro.total_disponibles}
+                    </td>
+                  </tr>
+                </React.Fragment>
+              );
+            })
           )}
         </tbody>
       </Table>

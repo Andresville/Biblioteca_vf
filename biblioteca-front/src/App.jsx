@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './components/Login';
+import NuevoUsuario from './components/NuevoUsuario';
 import Admin from './components/Admin';
 import User from './components/User';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -21,6 +22,7 @@ const App = () => {
         <Router>
             <Routes>
                 <Route path="/" element={<Login setUserType={setUserType} />} />
+                <Route path="/nuevo-usuario" element={<NuevoUsuario />} />
                 <Route path="/admin" element={userType === 'admin' ? <Admin /> : <p>No autorizado</p>} />
                 <Route path="/user" element={userType === 'user' ? <User /> : <p>No autorizado</p>} />
             </Routes>

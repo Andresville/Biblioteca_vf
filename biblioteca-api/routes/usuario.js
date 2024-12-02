@@ -38,5 +38,26 @@ router.post('/', (req, res) => {
     });
 });
 
+// Ruta para crear un nuevo usuario
+router.put('/', (req, res) => {
+    const { nombre, email, password, role, dni, direccion, telefono } = req.body;
+    const query = `
+        INSERT INTO usuario (nombre, email, password, role, dni, direccion, telefono) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    connection.query(
+        query,
+        [nombre, email, password, role, dni, direccion, telefono],
+        (err, results) => {
+            if (err) {
+                console.error('Error al insertar usuario:', err);
+                return res.status(500).send('Error al insertar en la base de datos');
+            }
+            res.status(201).send('Usuario creado exitosamente');
+        }
+    );
+});
+
 
 module.exports = router;
