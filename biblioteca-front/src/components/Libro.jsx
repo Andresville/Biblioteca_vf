@@ -1,18 +1,18 @@
-import React, { useEffect } from 'react';
-import Copia from './Copia';
-
+import React, { useEffect } from "react";
+import Copia from "./Copia";
 
 const Libro = ({ libro, estados, editoriales, idiomas, setLibros }) => {
   const editorialNombre =
-    editoriales.find((ed) => ed.id === libro.id_editorial)?.nombre || 'No disponible';
+    editoriales.find((ed) => ed.id === libro.id_editorial)?.nombre ||
+    "No disponible";
   const idiomaNombre =
-    idiomas.find((idioma) => idioma.id === libro.id_idioma)?.idioma || 'No disponible';
+    idiomas.find((idioma) => idioma.id === libro.id_idioma)?.idioma ||
+    "No disponible";
 
   // useEffect para monitorear los cambios en los estados y prestado de las copias
   useEffect(() => {
     libro.copias.forEach((copia) => {
       if (copia.estado === "presentable" && copia.prestado === 0) {
-        console.log(`Copia ID: ${copia.copia_id}`);
       }
     });
   }, [libro.copias]); // Se ejecuta cuando las copias del libro cambian
@@ -24,7 +24,9 @@ const Libro = ({ libro, estados, editoriales, idiomas, setLibros }) => {
           ? {
               ...l,
               copias: l.copias.map((copia) =>
-                copia.copia_id === copiaId ? { ...copia, estado: newEstado, isModified: true } : copia
+                copia.copia_id === copiaId
+                  ? { ...copia, estado: newEstado, isModified: true }
+                  : copia
               ),
             }
           : l

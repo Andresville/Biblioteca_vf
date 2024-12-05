@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../components/UserContext';
 import api from '../services/api';
 import { Container, Row, Col, Form, Button, Alert } from 'react-bootstrap';
 
 const Login = ({ setUserType }) => {
+    const { saveUserId } = useUser();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -14,13 +16,16 @@ const Login = ({ setUserType }) => {
         setError(''); 
 
         try {
-            const response = await api.post('/usuario', { username, password });
+            const response = await api.post('/usuario', { username, password});
             console.log('Respuesta del servidor:', response.data);
 
-            if (response.data.token && response.data.userType) {
+            if (response.data.token && response.data.userType && response.data.id ) {
+                
                 localStorage.setItem('token', response.data.token);
                 localStorage.setItem('userType', response.data.userType); 
-
+                localStorage.setItem('id_usuario', response.data.id); 
+                
+                saveUserId(response.data.id);
                 setUserType(response.data.userType);
 
                 if (response.data.userType === 'admin') {

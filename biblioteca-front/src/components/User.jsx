@@ -1,67 +1,107 @@
-import React, { useState, useEffect } from 'react';
-import api from '../services/api';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from 'react-router-dom';
+import axios from "axios";
+import { Table, Container, Row, Col, Button } from "react-bootstrap";
 
 const User = () => {
-    const [books, setBooks] = useState([]);
-    const [search, setSearch] = useState('');
-    const [selectedBook, setSelectedBook] = useState(null);
+  const [libros, setLibros] = useState([]);
+  const [editoriales, setEditoriales] = useState([]);
+  const [idiomas, setIdiomas] = useState([]);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchBooks = async () => {
-            const response = await api.get('/libros'); // Endpoint para obtener todos los libros
-            setBooks(response.data);
-        };
-        fetchBooks();
-    }, []);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [librosRes, editorialesRes, idiomasRes] = await Promise.all([
+          axios.get("http://localhost:5000/api/libros"),
+          axios.get("http://localhost:5000/api/editorial"),
+          axios.get("http://localhost:5000/api/idioma"),
+        ]);
 
-    const filteredBooks = books.filter(
-        (book) =>
-            book.titulo.toLowerCase().includes(search.toLowerCase()) ||
-            book.autor.toLowerCase().includes(search.toLowerCase())
-    );
-
-    const handleReserveBook = async (bookId) => {
-        try {
-            const response = await api.put(`/libros/${bookId}`, { disponible: false });
-            alert(response.data.message);
-    
-            // Actualizar el estado local directamente
-            setBooks((prevBooks) =>
-                prevBooks.map((book) =>
-                    book.id === bookId ? { ...book, disponible: false } : book
-                )
-            );
-        } catch (err) {
-            console.error('Error al reservar libro:', err);
-            alert('Hubo un error al reservar el libro');
-        }
+        setLibros(librosRes.data);
+        setEditoriales(editorialesRes.data);
+        setIdiomas(idiomasRes.data);
+      } catch (err) {
+        console.error("Error al obtener los datos:", err);
+        setError("No se pudo cargar la información. Intenta de nuevo.");
+      }
     };
-    
-    
 
-    return (
-        <div>
-            <h2>Libros Disponibles</h2>
-            <input
-                type="text"
-                placeholder="Buscar por título o autor"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-            />
-            <ul>
-                {filteredBooks.map((book) => (
-                    <li key={book.id}>
-                        {book.titulo} - {book.autor} ({book.disponible ? 'Disponible' : 'No disponible'})
-                        {book.disponible && (
-                            <button onClick={() => handleReserveBook(book.id)}>
-                                Reservar
-                            </button>
-                        )}
-                    </li>
-                ))}
-            </ul>
-        </div>
-    );
+    fetchData();
+  }, []);
+
+  return (
+    <Container className="d-flex justify-content-center align-items-center text-center">
+      <Row className="w-100">
+        <Col md={12} className="mx-auto">
+          <h1 className="text-center">Libros Disponibles</h1>
+          {error && <div className="alert alert-danger">{error}</div>}
+
+          <Table>
+            <thead>
+              <tr>
+                <th className="table-dark">Título</th>
+                <th className="table-dark">Autor</th>
+                <th className="table-dark">Editorial</th>
+                <th className="table-dark">Idioma</th>
+                <th className="table-dark">N° de Copia</th>
+                <th className="table-dark">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {libros.length === 0 ? (
+                <tr>
+                  <td colSpan="6">No se encontraron libros disponibles.</td>
+                </tr>
+              ) : (
+                libros.map((libro) => {
+                  const copiasFiltradas = libro.copias.filter(
+                    (copia) =>
+                      copia.estado === "presentable" && copia.prestado === 0
+                  );
+
+                  return copiasFiltradas.length > 0
+                    ? copiasFiltradas.map((copia) => (
+                        <tr key={copia.copia_id}>
+                          <td>{libro.titulo}</td>
+                          <td>{libro.autor}</td>
+                          <td>
+                            {
+                              editoriales.find(
+                                (editorial) =>
+                                  editorial.id === libro.id_editorial
+                              )?.nombre
+                            }
+                          </td>
+                          <td>
+                            {idiomas.length > 0
+                              ? idiomas.find(
+                                  (idioma) => idioma.id === libro.id_idioma
+                                )?.idioma || "No disponible"
+                              : "Cargando..."}
+                          </td>
+                          <td>{copia.copia_id}</td>
+                          <td>
+                            <Button
+                              onClick={() => navigate('/prestar', { state: { titulo: libro.titulo, copia: copia.copia_id } })}
+                              className="btn btn-primary"
+                            >
+                              Prestar
+                            </Button>
+                          </td>
+                        </tr>
+                      ))
+                    : null;
+                })
+              )}
+            </tbody>
+          </Table>
+        </Col>
+      </Row>
+    </Container>
+  );
 };
 
 export default User;
+

@@ -16,66 +16,43 @@ router.get('/', (req, res) => {
   });
 });
 
-// Crear un nuevo préstamo
-router.post('/', (req, res) => {
-    const { id_libro, id_usuario, fecha_prestamo, fecha_devolucion } = req.body;
+// Ruta para insertar préstamo
+router.put('/', (req, res) => {
+    const { titulo, copia, fecha_prestamo, fecha_devolucion, id_usuario } = req.body;
 
-    // Primero, verificar si el libro está disponible
-    connection.query('SELECT cantidad FROM libros WHERE id = ?', [id_libro], (err, results) => {
+    // id_libro correspondiente al título del libro
+    const queryLibro = 'SELECT id FROM libros WHERE titulo = ?';
+    
+    connection.query(queryLibro, [titulo], (err, results) => {
         if (err) {
-            console.error(err);
-            return res.status(500).json({ error: 'Error al consultar el libro' });
+            console.error('Error al consultar el libro:', err);
+            return res.status(500).send('Error al consultar el libro');
         }
 
-        if (results.length === 0 || results[0].cantidad <= 0) {
-            return res.status(400).json({ error: 'No hay libros disponibles para prestar' });
+        if (results.length === 0) {
+            return res.status(404).send('Libro no encontrado');
         }
 
-        // Si hay libros disponibles, registramos el préstamo
-        const queryPrestamo = 'INSERT INTO prestados (id_libro, id_usuario, fecha_prestamo, fecha_devolucion) VALUES (?, ?, ?, ?)';
-        connection.query(queryPrestamo, [id_libro, id_usuario, fecha_prestamo, fecha_devolucion], (err, results) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ error: 'Error al crear el préstamo' });
-            }
+        const id_libro = results[0].id; // Obtener el id del libro
 
-            // Reducir la cantidad disponible del libro
-            const queryCantidad = 'UPDATE libros SET cantidad = cantidad - 1 WHERE id = ?';
-            connection.query(queryCantidad, [id_libro], (err, updateResults) => {
+        const query = `
+            INSERT INTO prestados (id_libro, id_usuario, fecha_prestamo, fecha_devolucion, id_copia) 
+            VALUES (?, ?, ?, ?, ?)
+        `;
+
+        connection.query(
+            query,
+            [id_libro, id_usuario, fecha_prestamo, fecha_devolucion, copia],
+            (err, results) => {
                 if (err) {
-                    console.error(err);
-                    return res.status(500).json({ error: 'Error al actualizar la cantidad del libro' });
+                    console.error('Error al insertar préstamo:', err);
+                    return res.status(500).send('Error al insertar en la base de datos');
                 }
-
-                res.status(201).json({ message: 'Préstamo registrado con éxito' });
-            });
-        });
-    });
-});
-
-// Registrar devolución
-router.post('/devolucion', (req, res) => {
-    const { id_libro } = req.body;
-
-    // Actualizar la cantidad disponible del libro al devolverlo
-    const queryDevolucion = 'UPDATE libros SET cantidad = cantidad + 1 WHERE id = ?';
-    connection.query(queryDevolucion, [id_libro], (err, results) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ error: 'Error al registrar la devolución' });
-        }
-
-        // Eliminar el préstamo correspondiente (si se desea)
-        const queryEliminarPrestamo = 'DELETE FROM prestados WHERE id_libro = ? AND fecha_devolucion IS NULL';
-        connection.query(queryEliminarPrestamo, [id_libro], (err, deleteResults) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ error: 'Error al eliminar el préstamo' });
+                res.status(201).send('Préstamo registrado exitosamente');
             }
-
-            res.status(200).json({ message: 'Devolución registrada con éxito' });
-        });
+        );
     });
 });
+
 
 module.exports = router;
