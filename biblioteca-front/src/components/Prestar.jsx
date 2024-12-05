@@ -99,10 +99,10 @@ const Prestar = () => {
                     <div className="text-center mt-4">
                         <Button
                             variant="link"
-                            onClick={() => navigate('/')}
+                            onClick={() => navigate('/User')}
                             className="text-decoration-none"
                         >
-                            Volver al inicio
+                            Volver al detalle de libros
                         </Button>
                     </div>
                 </Col>
