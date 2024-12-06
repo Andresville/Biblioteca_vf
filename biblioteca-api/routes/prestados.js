@@ -54,5 +54,27 @@ router.put('/', (req, res) => {
     });
 });
 
-
+// Eliminar un préstamo por el ID de la copia
+router.delete('/:id_copia', (req, res) => {
+    const { id_copia } = req.params;
+    console.log('ID recibido:', id_copia); // Log para verificar el valor recibido
+  
+    const query = 'DELETE FROM prestados WHERE id_copia = ?';
+    connection.query(query, [id_copia], (err, results) => {
+      if (err) {
+        console.error('Error al eliminar el préstamo:', err);
+        return res.status(500).json({ error: 'Error al eliminar el préstamo' });
+      }
+  
+      if (results.affectedRows === 0) {
+        console.log('Préstamo no encontrado para id_copia:', id_copia); // Log para confirmar que no hay coincidencias
+        return res.status(404).json({ error: 'Préstamo no encontrado' });
+      }
+  
+      res.status(200).send('Préstamo eliminado exitosamente');
+    });
+  });
+  
+  
+  
 module.exports = router;

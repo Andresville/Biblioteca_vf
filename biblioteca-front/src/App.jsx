@@ -5,6 +5,7 @@ import NuevoUsuario from './components/NuevoUsuario';
 import Admin from './components/Admin';
 import User from './components/User';
 import Prestar from './components/Prestar';
+import Devolucion from './components/Devolucion';
 import { UserProvider } from './components/UserContext';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -31,6 +32,7 @@ const App = () => {
                 <Route path="/admin" element={userType === 'admin' ? <Admin /> : <p>No autorizado</p>} />
                 <Route path="/user" element={userType === 'user' ? <User /> : <p>No autorizado</p>} />
                 <Route path="/prestar" element={<Prestar />} />
+                <Route path="/devolucion" element={<Devolucion />} />
             </Routes>
         </Router>
         </UserProvider>

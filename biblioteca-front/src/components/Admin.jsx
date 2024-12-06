@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import Libro from './Libro';
-import { Table, Container, Row, Col } from 'react-bootstrap';
+import { Table, Container, Row, Col, Button } from 'react-bootstrap';
 
 const Admin = () => {
   const [libros, setLibros] = useState([]);
@@ -9,6 +10,7 @@ const Admin = () => {
   const [editoriales, setEditoriales] = useState([]);
   const [idiomas, setIdiomas] = useState([]);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -87,6 +89,15 @@ const Admin = () => {
               )}
             </tbody>
           </Table>
+          <div className="text-center mt-4">
+                        <Button
+                            variant="link"
+                            onClick={() => navigate('/Devolucion')}
+                            className="text-decoration-none"
+                        >
+                            Registrar Devoluciones
+                        </Button>
+                    </div>
         </Col>
       </Row>
     </Container>
