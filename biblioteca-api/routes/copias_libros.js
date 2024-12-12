@@ -56,6 +56,27 @@ router.put('/:id', (req, res) => {
     });
 });
 
+// Eliminar un préstamo por el ID de la copia
+router.delete('/:id_copia', (req, res) => {
+    const { id_copia } = req.params;
+    console.log('ID recibido:', id_copia); // Log para verificar el valor recibido
+  
+    const query = 'DELETE FROM copias_libros WHERE id = ?';
+    connection.query(query, [id_copia], (err, results) => {
+      if (err) {
+        console.error('Error al eliminar la copia:', err);
+        return res.status(500).json({ error: 'Error al eliminar la copia' });
+      }
+  
+      if (results.affectedRows === 0) {
+        console.log('Copia no encontrada para id_copia:', id_copia); // Log para confirmar que no hay coincidencias
+        return res.status(404).json({ error: 'Copia no encontrada' });
+      }
+  
+      res.status(200).send('La copia fue eliminada exitosamente');
+    });
+  });
+
 module.exports = router;
 
 

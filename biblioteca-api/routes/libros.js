@@ -12,6 +12,7 @@ router.get('/', (req, res) => {
         libros.ISBN,
         libros.id_editorial,
         libros.id_idioma,
+        libros.ruta_imagen,
         libros.cantidad,
         copias_libros.id AS copia_id,
         estado.estado AS estado,
@@ -31,7 +32,7 @@ router.get('/', (req, res) => {
     LEFT JOIN 
         estado ON copias_libros.id_estado = estado.id
     ORDER BY 
-        libros.titulo;
+        libros.id;
     `;
 
     connection.query(query, (err, results) => {
@@ -59,8 +60,9 @@ router.get('/', (req, res) => {
                     ISBN: row.ISBN,
                     id_editorial: row.id_editorial,
                     id_idioma: row.id_idioma,
+                    ruta_imagen: row.ruta_imagen,
                     cantidad: row.cantidad,
-                    total_disponibles: row.total_disponibles, // Agregar el total de disponibles
+                    total_disponibles: row.total_disponibles,
                     copias: [{
                         copia_id: row.copia_id,
                         estado: row.estado,
@@ -87,6 +89,7 @@ router.get('/:id', (req, res) => {
         libros.ISBN,
         libros.id_editorial,
         libros.id_idioma,
+        libros.ruta_imagen,
         libros.cantidad,
         copias_libros.id AS copia_id,
         estado.estado AS estado,
@@ -108,7 +111,7 @@ router.get('/:id', (req, res) => {
     WHERE 
         libros.id = ?
     ORDER BY 
-        libros.titulo;
+        libros.id;
     `;
 
     connection.query(query, [id], (err, results) => {
@@ -129,6 +132,7 @@ router.get('/:id', (req, res) => {
             ISBN: results[0].ISBN,
             id_editorial: results[0].id_editorial,
             id_idioma: results[0].id_idioma,
+            ruta_imagen: results[0].ruta_imagen,
             cantidad: results[0].cantidad,
             total_disponibles: results[0].total_disponibles, // Agregar el total de disponibles
             copias: results.map(row => ({
@@ -166,6 +170,77 @@ router.put('/:libro_id/copia/:copia_id', (req, res) => {
 
         res.status(200).json({ message: 'Estado de la copia actualizado con éxito' });
     });
+});
+
+router.put('/', (req, res) => {
+    const { titulo, autor, ISBN, ruta_imagen, editorial, idioma, cantidad } = req.body;
+
+    // Verificar que se recibieron los valores correctamente
+    console.log('Datos recibidos:', req.body);
+
+    // Validar los datos de entrada
+    if (
+        !titulo || !autor || !ISBN || !ruta_imagen ||
+        isNaN(editorial) || isNaN(idioma) || isNaN(cantidad) ||
+        cantidad < 1
+    ) {
+        return res.status(400).send('Datos inválidos');
+    }
+
+    // Query para insertar el libro
+    const insertLibroQuery = `
+        INSERT INTO libros (titulo, autor, ISBN, ruta_imagen, id_editorial, id_idioma, cantidad) 
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    connection.query(
+        insertLibroQuery,
+        [titulo, autor, ISBN, ruta_imagen, editorial, idioma, cantidad],
+        (err, results) => {
+            if (err) {
+                console.error('Error al insertar libro:', err);
+                return res.status(500).send('Error al insertar en la base de datos');
+            }
+
+            const libroId = results.insertId; // ID del libro recién insertado
+            console.log('ID del libro insertado:', libroId);
+
+            // Lógica para insertar las copias
+            let copiasQuery = '';
+            let copiasParams = [];
+            for (let i = 0; i < cantidad; i++) {
+                copiasQuery += `(?, 2, 0)`; // Generar los valores para cada copia (id_libro, id_estado=2, prestado=0)
+                copiasParams.push(libroId); // Añadir el id_libro
+                if (i < cantidad - 1) copiasQuery += ', '; // Coma entre los valores de cada inserción
+            }
+
+            // Query para insertar todas las copias de una vez
+            const insertCopiasQuery = `
+                INSERT INTO copias_libros (id_libro, id_estado, prestado)
+                VALUES ${copiasQuery}
+            `;
+
+            console.log('Insertando copias para el libro ID:', libroId, 'con cantidad:', cantidad);
+
+            // Ejecutar la query para crear las copias
+            connection.query(insertCopiasQuery, copiasParams, (err) => {
+                if (err) {
+                    console.error('Error al insertar copias:', err);
+                    return res.status(500).send('Error al insertar copias del libro');
+                }
+
+                console.log('Libro creado con ID:', libroId);
+                console.log('Copias creadas:', cantidad, 'con estado 2');
+
+                res.status(201).send({
+                    mensaje: 'Libro y copias creados exitosamente',
+                    libroId,
+                    copias: cantidad,
+                    estadoAsignado: 2
+                });
+            });
+        }
+    );
 });
 
 module.exports = router;

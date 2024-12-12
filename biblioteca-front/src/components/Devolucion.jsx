@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Table, Container, Row, Col, Button } from "react-bootstrap";
+import { Table, Container, Row, Col, Button, Form } from "react-bootstrap";
+
 
 const Devolver = () => {
   const [libros, setLibros] = useState([]);
   const [editoriales, setEditoriales] = useState([]);
   const [idiomas, setIdiomas] = useState([]);
+  const [busqueda, setBusqueda] = useState("");
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
@@ -31,13 +33,12 @@ const Devolver = () => {
     fetchData();
   }, []);
 
-  // Método para eliminar un préstamo
+  // Método para devolver un libro
   const handleDevolver = async (copiaId) => {
     try {
-      const url = `http://localhost:5000/api/prestados/${copiaId}`; // URL correcta
+      const url = `http://localhost:5000/api/prestados/${copiaId}`;
       await axios.delete(url);
       alert("Libro devuelto exitosamente.");
-      // Actualizar la lista de libros después de devolver uno
       setLibros((prevLibros) =>
         prevLibros.map((libro) => ({
           ...libro,
@@ -50,90 +51,121 @@ const Devolver = () => {
     }
   };
 
+  // Filtrar libros según búsqueda
+  const librosFiltrados = libros.filter((libro) =>
+    libro.titulo.toLowerCase().includes(busqueda.toLowerCase())
+  );
+
   return (
-    <Container className="d-flex justify-content-center align-items-center text-center">
-      <Row className="w-100">
-        <Col md={12} className="mx-auto">
-          <h1 className="text-center">Libros Disponibles</h1>
-          {error && <div className="alert alert-danger">{error}</div>}
+    <div
+    style={{
+      background: "linear-gradient(rgba(0, 0, 0, 0.85), rgba(99, 38, 117, 0.5), rgba(0, 0, 0, 0.85))",
+      minHeight: '100vh',
+      minWidth:'100vw',
+    }}
+>
+      <Container className="d-flex justify-content-center align-items-center text-center w-100 p-5">
+        <Row className="w-100">
+          <Col className="mx-auto">
+            <h1 className="text-center pb-3 fw-bold text-light">
+              Devolución de Libros
+            </h1>
+            {error && <div className="alert alert-danger">{error}</div>}
+            
+            {/* Barra de Búsqueda */}
+            <Form className="mb-4">
+              <Row>
+                <Col md={6} sm={12} className="mb-2 mx-auto">
+                  <Form.Control
+                    type="text"
+                    placeholder="Buscar por título"
+                    value={busqueda}
+                    onChange={(e) => setBusqueda(e.target.value)}
+                  />
+                </Col>
+              </Row>
+            </Form>
 
-          <Table>
-            <thead>
-              <tr>
-                <th className="table-dark">Título</th>
-                <th className="table-dark">Autor</th>
-                <th className="table-dark">Editorial</th>
-                <th className="table-dark">Idioma</th>
-                <th className="table-dark">N° de Copia</th>
-                <th className="table-dark">Acción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {libros.length === 0 ? (
-                <tr>
-                  <td colSpan="6">No se encontraron libros disponibles.</td>
-                </tr>
-              ) : (
-                libros.map((libro) => {
-                  const copiasFiltradas = libro.copias.filter(
-                    (copia) => copia.prestado === 1
-                  );
-
-                  return copiasFiltradas.length > 0
-                    ? copiasFiltradas.map((copia) => (
-                        <tr key={copia.copia_id}>
-                          <td>{libro.titulo}</td>
-                          <td>{libro.autor}</td>
-                          <td>
-                            {
-                              editoriales.find(
-                                (editorial) =>
-                                  editorial.id === libro.id_editorial
-                              )?.nombre
-                            }
-                          </td>
-                          <td>
-                            {idiomas.length > 0
-                              ? idiomas.find(
+            {/* Tabla de libros */}
+            <div className="table-responsive">
+              <Table>
+                <thead>
+                  <tr>
+                    <th className="table-dark">Título</th>
+                    <th className="table-dark">Autor</th>
+                    <th className="table-dark">Editorial</th>
+                    <th className="table-dark">Idioma</th>
+                    <th className="table-dark">N° de Copia</th>
+                    <th className="table-dark">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {librosFiltrados.length === 0 ? (
+                    <tr>
+                      <td colSpan="6">
+                        No se encontraron libros disponibles.
+                      </td>
+                    </tr>
+                  ) : (
+                    librosFiltrados.map((libro) => {
+                      const copiasPrestadas = libro.copias.filter(
+                        (copia) => copia.prestado === 1
+                      );
+                      return copiasPrestadas.length > 0
+                        ? copiasPrestadas.map((copia) => (
+                            <tr key={copia.copia_id}>
+                              <td>{libro.titulo}</td>
+                              <td>{libro.autor}</td>
+                              <td>
+                                {editoriales.find(
+                                  (editorial) =>
+                                    editorial.id === libro.id_editorial
+                                )?.nombre || "Desconocido"}
+                              </td>
+                              <td>
+                                {idiomas.find(
                                   (idioma) => idioma.id === libro.id_idioma
-                                )?.idioma || "No disponible"
-                              : "Cargando..."}
-                          </td>
-                          <td>{copia.copia_id}</td>
-                          <td>
-                            <Button
-                              onClick={() => {
-                                console.log(
-                                  "ID de la copia para devolver:",
-                                  copia.copia_id
-                                ); // Log para verificar el ID
-                                handleDevolver(copia.copia_id);
-                              }}
-                              className="btn btn-danger"
-                            >
-                              Devolver
-                            </Button>
-                          </td>
-                        </tr>
-                      ))
-                    : null;
-                })
-              )}
-            </tbody>
-          </Table>
-          <div className="text-center mt-4">
-                        <Button
-                            variant="link"
-                            onClick={() => navigate('/Admin')}
-                            className="text-decoration-none"
-                        >
-                            Volver al detalle de libros
-                        </Button>
-                    </div>
-        </Col>
-      </Row>
-    </Container>
+                                )?.idioma || "Desconocido"}
+                              </td>
+                              <td>{copia.copia_id}</td>
+                              <td>
+                                <Button
+                                  variant="danger"
+                                  onClick={() =>
+                                    handleDevolver(copia.copia_id)
+                                  }
+                                >
+                                  Devolver
+                                </Button>
+                              </td>
+                            </tr>
+                          ))
+                        : null;
+                    })
+                  )}
+                </tbody>
+              </Table>
+            </div>
+
+            {/* Botón Volver */}
+            <Row className="mt-4">
+              <Col className="text-center">
+                <Button
+                  variant="link"
+                  onClick={() => navigate("/Admin")}
+                  className="text-decoration-none fw-bold text-light"
+                >
+                  Volver al detalle de libros
+                </Button>
+              </Col>
+            </Row>
+          </Col>
+        </Row>
+      </Container>
+    </div>
   );
 };
 
 export default Devolver;
+
+

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Form, Button, Container, Row, Col, Alert } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom"; 
-import { useUser } from "../components/UserContext";
+import { useUser } from "../Context/UserContext";
 import api from '../services/api';
 
 const Prestar = () => {
@@ -58,11 +58,18 @@ const Prestar = () => {
     };
 
     return (
-        <Container className="d-flex justify-content-center align-items-center mt-3 mb-5">
+        <div
+    style={{
+        background: "linear-gradient(rgba(0, 0, 0, 0.85), rgba(99, 38, 117, 0.5), rgba(0, 0, 0, 0.85))",
+      minHeight: '100vh',
+      minWidth:'100vw',
+    }}
+>
+        <Container className="d-flex justify-content-center align-items-center text-center w-100 p-5">
             <Row className="w-100">
                 <Col md={8} className="mx-auto">
                     <div className="text-center mb-4">
-                        <h2>Crear Prestamo</h2>
+                        <h1 className="text-center pb-3 fw-bold text-light">Crear Prestamo</h1>
                     </div>
                     {error && <Alert variant="danger">{error}</Alert>}
                     {success && <Alert variant="success">Prestamo creado exitosamente. Redirigiendo...</Alert>}
@@ -100,7 +107,7 @@ const Prestar = () => {
                         <Button
                             variant="link"
                             onClick={() => navigate('/User')}
-                            className="text-decoration-none"
+                            className="text-decoration-none fw-bold text-light"
                         >
                             Volver al detalle de libros
                         </Button>
@@ -108,6 +115,7 @@ const Prestar = () => {
                 </Col>
             </Row>
         </Container>
+        </div>
     );
 };
 
