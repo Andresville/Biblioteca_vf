@@ -103,7 +103,7 @@ const Admin = () => {
 
             {/* Mostrar la tabla solo si hay una búsqueda activa */}
             {isSearchActive && (
-              <div className="table-responsive">
+              <div className="table-responsive" style={{ overflowY: "auto", maxHeight: "55vh" }}>
               <Table>
                 <thead>
                   <tr>

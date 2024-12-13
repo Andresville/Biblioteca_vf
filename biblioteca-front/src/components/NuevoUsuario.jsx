@@ -67,7 +67,9 @@ const NuevoUsuario = () => {
                         <h1 className="text-center pb-3 fw-bold text-light">Nuevo Usuario</h1>
                         {error && <Alert variant="danger">{error}</Alert>}
                         {success && <Alert variant="success">Usuario creado exitosamente. Redirigiendo...</Alert>}
-                        <Form onSubmit={handleSubmit} className="shadow p-4 rounded bg-light">
+                        <Form onSubmit={handleSubmit} 
+                        className="shadow p-4 rounded bg-light"
+                        style={{ overflowY: "auto", maxHeight: "65vh" }}>
                             <Form.Group className="mb-3" controlId="formNombre">
                                 <Form.Label>Nombre</Form.Label>
                                 <Form.Control

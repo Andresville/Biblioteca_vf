@@ -68,6 +68,7 @@ const NuevoLibro = () => {
             <Form
               onSubmit={handleSubmit}
               className="shadow p-4 rounded bg-light"
+              style={{ overflowY: "auto", maxHeight: "65vh"}}
             >
               <Form.Group className="mb-3" controlId="formTitulo">
                 <Form.Label>Titulo</Form.Label>

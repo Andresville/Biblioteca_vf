@@ -87,7 +87,7 @@ const Devolver = () => {
             </Form>
 
             {/* Tabla de libros */}
-            <div className="table-responsive">
+            <div className="table-responsive"  style={{ overflowY: "auto", maxHeight: "55vh" }}>
               <Table>
                 <thead>
                   <tr>
