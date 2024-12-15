@@ -13,7 +13,7 @@ RUN npm install
 # Copia el resto de los archivos de la aplicación
 COPY biblioteca-api/ .
 
-# Expón el puerto que está usando tu API
+# Exponemos el puerto que está usando tu API
 EXPOSE 5000
 
 # Comando para iniciar la aplicación
